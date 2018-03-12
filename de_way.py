@@ -6,11 +6,11 @@ from PIL import Image
 import graph_class as gr
 
 MAP_ARRAY = np.zeros((8, 8), dtype=int)
-OBSTACLES = [(3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (2, 4), (2, 5), (2, 6), (2, 7), (5, 4), (6, 4), (7, 4), (6, 6), (6, 7), (0, 7), (1, 7)]
+# OBSTACLES = [(3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (2, 4), (2, 5), (2, 6), (2, 7), (5, 4), (6, 4), (7, 4), (6, 6), (6, 7), (0, 7), (1, 7)]
 
 # Labyrinth test
-# OBSTACLES = [(7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 6),
-# (3, 6), (4, 6), (5, 6), (6, 6), (6, 5), (6, 4), (6, 3), (6, 3), (5, 3), (4, 3), (3, 3), (3, 4)]
+OBSTACLES = [(7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 6),
+(3, 6), (4, 6), (5, 6), (6, 6), (6, 5), (6, 4), (6, 3), (6, 3), (5, 3), (4, 3), (3, 3), (3, 4)]
 
 graph = gr.Graph()
 # Create bitmap image
@@ -18,10 +18,10 @@ img = Image.new( 'RGB', (320, 320), "white")  # create a new black image
 pixels = img.load()  # create the pixel map
 
 
-def fill_map(x_coords, y_coords):
+def fill_map(x_coords, y_coords, color):
     for x in range(40):
         for i in range(40):
-            pixels[(40 * x_coords) + x, (40 * y_coords) + i] = (0, 0, 0)
+            pixels[(40 * x_coords) + x, (40 * y_coords) + i] = color
 
 
 def expansion_algorithm(start_point, finish_point):
@@ -31,12 +31,12 @@ def expansion_algorithm(start_point, finish_point):
             cell_y = cell[1]
 
             next_cell = MAP_ARRAY[cell_x - 1][cell_y]
-            if cell_x - 1 > -1:
+            if cell_x - 1 != -1:
                 if next_cell == 0:
                     MAP_ARRAY[cell_x - 1][cell[1]] = step_num + 1
                     usable_array.append((cell_x - 1, cell_y))
 
-            if cell_y - 1 > -1:
+            if cell_y - 1 != -1:
                 next_cell = MAP_ARRAY[cell_x][cell_y - 1]
                 if next_cell == 0:
                     MAP_ARRAY[cell_x][cell_y - 1] = step_num + 1
@@ -132,7 +132,7 @@ def expansion_algorithm(start_point, finish_point):
                     de_way.append((cell_x, cell_y + 1))
                     return (cell_x, cell_y + 1), step_num
 
-        de_way = []
+        de_way = [finish_point]
         step_value = step_val
         current_cell = finish_point
         map_size = len(MAP_ARRAY)
@@ -151,7 +151,10 @@ def expansion_algorithm(start_point, finish_point):
     de_way_len = markup_func(start_point, finish_point)
     print(de_way_len)
     way = find_de_way(start_point, finish_point, de_way_len)
-    print(way)
+    print('Now you know de way!!!')
+    way.reverse()
+    return way
+
 
 for x in OBSTACLES:
     MAP_ARRAY[x[0], x[1]] = -1
@@ -180,9 +183,13 @@ for x in range(8):
 for x in range(8):
     for i in range(8):
         if graph.check_empty(x * 8 + (i + 1)):
-            fill_map(i, x)
+            fill_map(i, x, (0, 0, 0))
 
-expansion_algorithm((7, 0), (7, 7))
+de_way = expansion_algorithm((7, 0), (5, 4))
+
+# Paint way to map
+for x in de_way:
+    fill_map(x[1], x[0], (0, 200, 0))
 
 for x in MAP_ARRAY:
     print(x)
