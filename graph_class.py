@@ -3,8 +3,8 @@ import numpy as np
 
 class Graph:
     def __init__(self):
-        self.adj_array = [[0, 1, 1, 0], [0, 1, 0, 1], [1, 0, 0, 0], [1, 1, 1, 0]]
-        self.vertex_dict = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+        self.adj_array = []
+        self.vertex_dict = {}
 
     def add_vertex(self, vertex_name):
         if vertex_name in self.vertex_dict:
@@ -48,13 +48,46 @@ class Graph:
         else:
             print("Nonexistent value")
 
+    def create_conn(self, x_conn, y_conn):
+        id_a = self.vertex_dict[x_conn] - 1
+        id_b = self.vertex_dict[y_conn] - 1
+        self.adj_array[id_a][id_b] = 1
+        self.adj_array[id_b][id_a] = 1
+
+    def check_conn(self, name_a, name_b):
+        id_a = self.vertex_dict[name_a] - 1
+        id_b = self.vertex_dict[name_b] - 1
+        if self.adj_array[id_a][id_b] == 1 and self.adj_array[id_b][id_a] == 1:
+            return True
+        return False
+
+    def check_empty(self, vertex):
+        id_vertex = self.vertex_dict[vertex] - 1
+        cheked_vertex = self.adj_array[id_vertex]
+        if 1 in cheked_vertex:
+            return False
+        return True
+
     def print(self):
         print(f"Значение словаря вершин {self.vertex_dict}")
         for x in self.adj_array:
             print(x)
 
 
-gra = Graph()
-gra.print()
-gra.del_vertex('b')
-gra.print()
+'''gra = Graph()
+gra.add_vertex(1)
+gra.add_vertex(2)
+gra.add_vertex(3)
+gra.add_vertex(4)
+gra.add_vertex(5)
+gra.add_vertex(6)
+gra.add_vertex(7)
+gra.add_vertex(8)
+
+gra.create_conn(1, 2)
+gra.create_conn(1, 3)
+gra.create_conn(3, 4)
+gra.create_conn(3, 8)
+print(gra.check_empty(1))
+print(gra.check_empty(6))
+gra.print()'''
