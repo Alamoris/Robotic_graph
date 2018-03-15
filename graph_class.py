@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class Graph:
     def __init__(self):
         self.adj_array = []
@@ -72,22 +69,3 @@ class Graph:
         print(f"Значение словаря вершин {self.vertex_dict}")
         for x in self.adj_array:
             print(x)
-
-
-'''gra = Graph()
-gra.add_vertex(1)
-gra.add_vertex(2)
-gra.add_vertex(3)
-gra.add_vertex(4)
-gra.add_vertex(5)
-gra.add_vertex(6)
-gra.add_vertex(7)
-gra.add_vertex(8)
-
-gra.create_conn(1, 2)
-gra.create_conn(1, 3)
-gra.create_conn(3, 4)
-gra.create_conn(3, 8)
-print(gra.check_empty(1))
-print(gra.check_empty(6))
-gra.print()'''
