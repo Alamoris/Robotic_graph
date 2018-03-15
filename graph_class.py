@@ -3,12 +3,12 @@ class Graph:
         self.adj_array = []
         self.vertex_dict = {}
 
-    def add_vertex(self, vertex_name):
-        if vertex_name in self.vertex_dict:
+    def add_vertex(self, vertex):
+        if vertex in self.vertex_dict:
             print("Error graph already have this item")
         else:
             # Add dict value with new vertex
-            self.vertex_dict.update({vertex_name: (len(self.vertex_dict) + 1)})
+            self.vertex_dict.update({vertex: (len(self.vertex_dict) + 1)})
 
             # Add vertex from map array
             self.adj_array.append([])
@@ -18,12 +18,12 @@ class Graph:
                         x.append(0)
                 x.append(0)
 
-    def del_vertex(self, vertex_name):
-        if vertex_name in self.vertex_dict:
-            row_to_delete = self.vertex_dict[vertex_name] - 1
+    def del_vertex(self, vertex):
+        if vertex in self.vertex_dict:
+            row_to_delete = self.vertex_dict[vertex] - 1
 
             # Del some vertex from dict and shifting it
-            pop_value = self.vertex_dict.pop(vertex_name)
+            pop_value = self.vertex_dict.pop(vertex)
             keys = self.vertex_dict.keys()
             for x in keys:
                 if self.vertex_dict[x] > pop_value:
@@ -45,11 +45,28 @@ class Graph:
         else:
             print("Nonexistent value")
 
-    def create_conn(self, x_conn, y_conn):
-        id_a = self.vertex_dict[x_conn] - 1
-        id_b = self.vertex_dict[y_conn] - 1
-        self.adj_array[id_a][id_b] = 1
-        self.adj_array[id_b][id_a] = 1
+    def take_conn(self, vertex):
+        connections_array = []
+        vertex_id = self.vertex_dict[vertex] - 1
+        search_array = self.adj_array[vertex_id]
+        i = 1
+        for x in search_array:
+            if x != 0:
+                connections_array.append(i)
+            i += 1
+        return connections_array
+
+    def take_weight(self, vertex_x, vertex_y):
+        x_id = self.vertex_dict[vertex_x] - 1
+        y_id = self.vertex_dict[vertex_y] - 1
+        weight = self.adj_array[x_id][y_id]
+        return weight
+
+    def create_conn(self, x_conn, y_conn, weight):
+        x_id = self.vertex_dict[x_conn] - 1
+        y_id = self.vertex_dict[y_conn] - 1
+        self.adj_array[x_id][y_id] = weight
+        self.adj_array[y_id][x_id] = weight
 
     def check_conn(self, name_a, name_b):
         id_a = self.vertex_dict[name_a] - 1
@@ -61,11 +78,33 @@ class Graph:
     def check_empty(self, vertex):
         id_vertex = self.vertex_dict[vertex] - 1
         cheked_vertex = self.adj_array[id_vertex]
-        if 1 in cheked_vertex:
-            return False
+        for x in cheked_vertex:
+            if x != 0:
+                return False
         return True
 
     def print(self):
         print(f"Значение словаря вершин {self.vertex_dict}")
         for x in self.adj_array:
             print(x)
+
+'''
+gra = Graph()
+gra.add_vertex(1)
+gra.add_vertex(2)
+gra.add_vertex(3)
+gra.add_vertex(4)
+gra.add_vertex(5)
+gra.add_vertex(6)
+gra.add_vertex(7)
+gra.add_vertex(8)
+
+gra.create_conn(1, 5, 4)
+gra.create_conn(1, 3, 6)
+gra.create_conn(5, 7, 2)
+gra.create_conn(2, 4, 9)
+gra.create_conn(8, 3, 5)
+gra.print()
+print(gra.take_weight(4, 3))
+print(gra.take_conn(4))
+'''
