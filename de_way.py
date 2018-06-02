@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from PIL import Image
 
@@ -5,7 +7,7 @@ import graph_class as gr
 
 MAP_ARRAY = np.zeros((8, 8), dtype=int)
 OBSTACLES = [(3, 1), (4, 1), (5, 1), (6, 1), (2, 4), (2, 5),
-             (2, 6), (2, 7), (5, 4), (6, 4), (7, 4), (6, 6), (6, 7), (0, 7), (1, 7)]
+             (2, 6), (2, 7), (5, 4), (6, 4), (7, 4), (6, 6), (6, 7), (0, 7), (1, 7), (7, 1)]
 
 # Labyrinth test
 # OBSTACLES = [(7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 6),
@@ -23,8 +25,32 @@ def fill_map(x_coords, y_coords, color):
 
 
 def expansion_algorithm(start_point, finish_point):
+    """
+    Main function realisation expansion algorithm
+    Take start point and finish pint in tuple format
+    """
     def markup_func(start, finish):
+        """
+        Markup way map
+        """
+
+        def alternative_step(cell, step_num):
+            storage_array = []
+            connections = graph.take_conn(cell)
+            for con in connections:
+                weight = graph.take_weight(cell, con)
+                if weight == 1:
+                    cell_x = (con - 1) // 8
+                    cell_y = (con - 1) % 8
+                    MAP_ARRAY[cell_x, cell_y] = step_num - 9
+                    graph.create_conn(cell, con, step_num)
+                    storage_array.append(con)
+            return storage_array
+
         def step(cell, step_num, usable_array):
+            """
+            Calculate one step of expansion algorithm
+            """
             cell_x = cell[0]
             cell_y = cell[1]
 
@@ -52,39 +78,55 @@ def expansion_algorithm(start_point, finish_point):
                     MAP_ARRAY[cell_x][cell_y + 1] = step_num + 1
                     usable_array.append((cell_x, cell_y + 1))
 
-        first_wave_array = []
-        second_wave_array = []
-        step_value = 0
+        current_array = []
+        custody_array = []
+        step_value = 10
         map_size = len(MAP_ARRAY)
 
         # Initialise first step
-        MAP_ARRAY[start[0]][start[1]] = -9
-        step(start, step_value, first_wave_array)
-        print(f"first array = {first_wave_array}, \n second array = {second_wave_array}")
+        #MAP_ARRAY[start[0]][start[1]] = -9
+        # step(start, step_value, first_wave_array)
+        current_array = alternative_step(start, step_value)
+        # print("first array = {0}, \n second array = {1}".format(current_array, custody_array))
         while True:
             step_value += 1
 
-            if (step_value % 2) == 1:
-                current_array = first_wave_array
-                custody_array = second_wave_array
-            else:
-                current_array = second_wave_array
-                custody_array = first_wave_array
+            # if (step_value % 2) == 1:
+            #     current_array = first_wave_array
+            #     custody_array = second_wave_array
+            # else:
+            #     current_array = second_wave_array
+            #     custody_array = first_wave_array
 
-            print(current_array)
+            # print(current_array)
             for x in current_array:
-                step(x, step_value, custody_array)
-            current_array.clear()
+                cell_connections_array = alternative_step(x, step_value)
+                # step(x, step_value, custody_array)
+                custody_array = custody_array + cell_connections_array
+                #print(custody_array)
 
-            if MAP_ARRAY[finish[0]][finish[1]] != 0:
-                print(f"first array = {first_wave_array}, \n second array = {second_wave_array}")
+            current_array = custody_array.copy()
+            custody_array.clear()
+
+            if finish in current_array:
+                for x in current_array:
+                    cell_connections_array = alternative_step(x, step_value)
+                # print("first array = {1}, \n second array = {0}".format(first_wave_array, second_wave_array))
                 break
-        step_value += 1
         return step_value
 
     def find_de_way(start_point, finish_point, step_val):  # clack clack clack
+        def alternative_search_step(cell, step_num, way_array):
+            connections = graph.take_conn(cell)
+            for con in connections:
+                weight = graph.take_weight(cell, con)
+                if weight == step_num:
+                    way_array.append(con)
+                    step_num -= 1
+                    return con
+
         # Searching next station of way
-        def search_step(cell, step_num, start, finish):
+        def search_step(cell, step_num, way_array):
             cell_x = cell[0]
             cell_y = cell[1]
             print(cell_x)
@@ -93,41 +135,41 @@ def expansion_algorithm(start_point, finish_point):
             if cell_x - 1 != -1:
                 next_cell = MAP_ARRAY[cell_x - 1][cell_y]
                 if next_cell == step_num - 1:
-                    de_way.append((cell_x - 1, cell_y))
+                    way_array.append((cell_x - 1, cell_y))
                     step_num -= 1
                     return (cell_x - 1, cell_y), step_num
                 elif next_cell == -9:
-                    de_way.append((cell_x - 1, cell_y))
+                    way_array.append((cell_x - 1, cell_y))
                     return (cell_x - 1, cell_y), step_num
 
             if cell_y - 1 != -1:
                 next_cell = MAP_ARRAY[cell_x][cell_y - 1]
                 if next_cell == step_num - 1:
-                    de_way.append((cell_x, cell_y - 1))
+                    way_array.append((cell_x, cell_y - 1))
                     step_num -= 1
                     return (cell_x, cell_y - 1), step_num
                 elif next_cell == -9:
-                    de_way.append((cell_x, cell_y - 1))
+                    way_array.append((cell_x, cell_y - 1))
                     return (cell_x, cell_y - 1), step_num
 
             if cell_x + 1 < map_size:
                 next_cell = MAP_ARRAY[cell_x + 1][cell_y]
                 if next_cell == step_num - 1:
-                    de_way.append((cell_x + 1, cell_y))
+                    way_array.append((cell_x + 1, cell_y))
                     step_num -= 1
                     return (cell_x + 1, cell_y), step_num
                 elif next_cell == -9:
-                    de_way.append((cell_x + 1, cell_y))
+                    way_array.append((cell_x + 1, cell_y))
                     return (cell_x + 1, cell_y), step_num
 
             if cell_y + 1 < map_size:
                 next_cell = MAP_ARRAY[cell_x][cell_y + 1]
                 if next_cell == step_num - 1:
-                    de_way.append((cell_x, cell_y + 1))
+                    way_array.append((cell_x, cell_y + 1))
                     step_num -= 1
                     return (cell_x, cell_y + 1), step_num
                 elif next_cell == -9:
-                    de_way.append((cell_x, cell_y + 1))
+                    way_array.append((cell_x, cell_y + 1))
                     return (cell_x, cell_y + 1), step_num
 
         de_way = [finish_point]
@@ -138,13 +180,16 @@ def expansion_algorithm(start_point, finish_point):
         while True:
             i += 1
 
-            work_cell, value = search_step(current_cell, step_value, start_point, finish_point)
+            # work_cell, value = search_step(current_cell, step_value, de_way)
+            work_cell = alternative_search_step(current_cell, step_value, de_way)
             current_cell = work_cell
-            step_value = value
+            step_value -= 1
 
             if current_cell == start_point:
                 return de_way
 
+    start_point = start_point[0] * 8 + (start_point[1] + 1)
+    finish_point = finish_point[0] * 8 + (finish_point[1] + 1)
     de_way_len = markup_func(start_point, finish_point)
     print(de_way_len)
     way = find_de_way(start_point, finish_point, de_way_len)
@@ -213,52 +258,65 @@ def dejkstra_algorithm(start_point, finish_point):
     finith_way.reverse()
     return finith_way
 
+def initialize_graph():
+    for x in OBSTACLES:
+        MAP_ARRAY[x[0], x[1]] = -1
 
-for x in OBSTACLES:
-    MAP_ARRAY[x[0], x[1]] = -1
+    # Generate our graph vertex
+    for x in range(1, 65):
+        graph.add_vertex(x)
 
-# Generate our graph vertex
-for x in range(1, 65):
-    graph.add_vertex(x)
+    # Filling in adjective graph
+    for x in range(8):
+        for i in range(8):
+            cords = (x, i)
+            if cords in OBSTACLES or (x, i + 1) in OBSTACLES:
+                ...
+            else:
+                if i != 7:
+                    graph.create_conn((x * 8 + (i + 1)), (x * 8 + (i + 1) + 1), 1)
 
-# Filling in adjective graph
-for x in range(8):
-    for i in range(8):
-        cords = (x, i)
-        if cords in OBSTACLES or (x, i + 1) in OBSTACLES:
-            ...
-        else:
-            if i != 7:
-                graph.create_conn((x * 8 + (i + 1)), (x * 8 + (i + 1) + 1), 1)
-
-        if cords in OBSTACLES or (x + 1, i) in OBSTACLES:
-            ...
-        else:
-            if x != 7:
-                graph.create_conn((x * 8 + (i + 1)), ((x + 1) * 8 + (i + 1)), 1)
+            if cords in OBSTACLES or (x + 1, i) in OBSTACLES:
+                ...
+            else:
+                if x != 7:
+                    graph.create_conn((x * 8 + (i + 1)), ((x + 1) * 8 + (i + 1)), 1)
 
 
+def convert(treatment):
+    return [((x - 1) // 8, (x - 1) % 8) for x in treatment]
 
-# Painting map
-for x in range(8):
-    for i in range(8):
-        if graph.check_empty(x * 8 + (i + 1)):
-            fill_map(i, x, (0, 0, 0))
 
-graph.create_conn(57, 58, 10)
-wayp = dejkstra_algorithm((7, 0), (7, 7))
-result_way = []
-for x in wayp:
-    result_way.append((x // 8, x % 8))
-print(result_way)
+def main():
+    #graph.create_conn(58, 57, 10)
+    #wayp = dejkstra_algorithm((7, 0), (7, 7))
+    #de_way = []
+    #for x in wayp:
+    #    de_way.append((x // 8, x % 8))
+    #print(de_way)
+    initialize_graph()
 
-# de_way = expansion_algorithm((7, 0), (7, 7))
 
-# Paint way to map
-# for x in de_way:
-#     fill_map(x[1], x[0], (0, 200, 0))
+    de_way = expansion_algorithm((7, 0), (7, 7))
+    de_way = convert(de_way)
+    print(de_way)
 
-for x in MAP_ARRAY:
-    print(x)
-graph.print()
-img.show()
+    # Paint way to map
+    for x in de_way:
+        fill_map(int(x[1]), int(x[0]), (0, 200, 0))
+
+    #de_way = dict(de_way)
+    # Painting map
+    for x in range(8):
+        for i in range(8):
+            if graph.check_empty(x * 8 + (i + 1)):
+                fill_map(i, x, (0, 0, 0))
+
+    for x in MAP_ARRAY:
+        print(x)
+    img.show()
+    # graph.print_func()
+
+if __name__ == "__main__":
+    print("Включение алгоритма поиска пути")
+    sys.exit(main())

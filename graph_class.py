@@ -46,6 +46,9 @@ class Graph:
             print("Nonexistent value")
 
     def take_conn(self, vertex):
+        """
+        Take vertex name and return array with vertex numbers of available connections
+        """
         connections_array = []
         vertex_id = self.vertex_dict[vertex] - 1
         search_array = self.adj_array[vertex_id]
@@ -57,6 +60,9 @@ class Graph:
         return connections_array
 
     def take_weight(self, vertex_x, vertex_y):
+        """
+        Take vertex names and return weight of connection
+        """
         x_id = self.vertex_dict[vertex_x] - 1
         y_id = self.vertex_dict[vertex_y] - 1
         weight = self.adj_array[x_id][y_id]
@@ -83,28 +89,7 @@ class Graph:
                 return False
         return True
 
-    def print(self):
-        print(f"Значение словаря вершин {self.vertex_dict}")
+    def print_func(self):
+        print("Значение словаря вершин {0}".format(self.vertex_dict))
         for x in self.adj_array:
             print(x)
-
-'''
-gra = Graph()
-gra.add_vertex(1)
-gra.add_vertex(2)
-gra.add_vertex(3)
-gra.add_vertex(4)
-gra.add_vertex(5)
-gra.add_vertex(6)
-gra.add_vertex(7)
-gra.add_vertex(8)
-
-gra.create_conn(1, 5, 4)
-gra.create_conn(1, 3, 6)
-gra.create_conn(5, 7, 2)
-gra.create_conn(2, 4, 9)
-gra.create_conn(8, 3, 5)
-gra.print()
-print(gra.take_weight(4, 3))
-print(gra.take_conn(4))
-'''
