@@ -26,15 +26,21 @@ def fill_map(x_coords, y_coords, color):
 
 def expansion_algorithm(start_point, finish_point):
     """
-    Main function realisation expansion algorithm
-    Take start point and finish pint in tuple format
+        Main function realisation expansion algorithm
+        Take start point and finish point in tuple format
     """
     def markup_func(start, finish):
         """
-        Markup way map
+            Markup way map
+            Take start and final cells
         """
 
         def alternative_step(cell, step_num):
+            """
+                Processes one markup step
+                Function takes numbers of neighboring cells and checks their weight.
+                If it has not been marked yet add current point to storage array
+            """
             storage_array = []
             connections = graph.take_conn(cell)
             for con in connections:
@@ -47,66 +53,30 @@ def expansion_algorithm(start_point, finish_point):
                     storage_array.append(con)
             return storage_array
 
-        def step(cell, step_num, usable_array):
+
+        def take_next_array(curs):
             """
-            Calculate one step of expansion algorithm
+                Take array with numbers processed in this loop and return
+                array with numbers for next loop
             """
-            cell_x = cell[0]
-            cell_y = cell[1]
+            storage_array = []
+            for x in curs:
+                cell_connections_array = alternative_step(x, step_value)
+                storage_array = storage_array + cell_connections_array
+            return storage_array
 
-            next_cell = MAP_ARRAY[cell_x - 1][cell_y]
-            if cell_x - 1 != -1:
-                if next_cell == 0:
-                    MAP_ARRAY[cell_x - 1][cell[1]] = step_num + 1
-                    usable_array.append((cell_x - 1, cell_y))
-
-            if cell_y - 1 != -1:
-                next_cell = MAP_ARRAY[cell_x][cell_y - 1]
-                if next_cell == 0:
-                    MAP_ARRAY[cell_x][cell_y - 1] = step_num + 1
-                    usable_array.append((cell_x, cell_y - 1))
-
-            if cell_x + 1 < map_size:
-                next_cell = MAP_ARRAY[cell_x + 1][cell_y]
-                if next_cell == 0:
-                    MAP_ARRAY[cell_x + 1][cell_y] = step_num + 1
-                    usable_array.append((cell_x + 1, cell_y))
-
-            if cell_y + 1 < map_size:
-                next_cell = MAP_ARRAY[cell_x][cell_y + 1]
-                if next_cell == 0:
-                    MAP_ARRAY[cell_x][cell_y + 1] = step_num + 1
-                    usable_array.append((cell_x, cell_y + 1))
-
-        current_array = []
-        custody_array = []
         step_value = 10
         map_size = len(MAP_ARRAY)
 
         # Initialise first step
-        #MAP_ARRAY[start[0]][start[1]] = -9
-        # step(start, step_value, first_wave_array)
         current_array = alternative_step(start, step_value)
-        # print("first array = {0}, \n second array = {1}".format(current_array, custody_array))
+
         while True:
             step_value += 1
 
-            # if (step_value % 2) == 1:
-            #     current_array = first_wave_array
-            #     custody_array = second_wave_array
-            # else:
-            #     current_array = second_wave_array
-            #     custody_array = first_wave_array
+            store_array = take_next_array(current_array)
 
-            # print(current_array)
-            for x in current_array:
-                cell_connections_array = alternative_step(x, step_value)
-                # step(x, step_value, custody_array)
-                custody_array = custody_array + cell_connections_array
-                #print(custody_array)
-
-            current_array = custody_array.copy()
-            custody_array.clear()
+            current_array = store_array
 
             if finish in current_array:
                 for x in current_array:
@@ -116,6 +86,9 @@ def expansion_algorithm(start_point, finish_point):
         return step_value
 
     def find_de_way(start_point, finish_point, step_val):  # clack clack clack
+        """
+            Body search path function
+        """
         def alternative_search_step(cell, step_num, way_array):
             connections = graph.take_conn(cell)
             for con in connections:
@@ -124,53 +97,6 @@ def expansion_algorithm(start_point, finish_point):
                     way_array.append(con)
                     step_num -= 1
                     return con
-
-        # Searching next station of way
-        def search_step(cell, step_num, way_array):
-            cell_x = cell[0]
-            cell_y = cell[1]
-            print(cell_x)
-            print(cell_y)
-
-            if cell_x - 1 != -1:
-                next_cell = MAP_ARRAY[cell_x - 1][cell_y]
-                if next_cell == step_num - 1:
-                    way_array.append((cell_x - 1, cell_y))
-                    step_num -= 1
-                    return (cell_x - 1, cell_y), step_num
-                elif next_cell == -9:
-                    way_array.append((cell_x - 1, cell_y))
-                    return (cell_x - 1, cell_y), step_num
-
-            if cell_y - 1 != -1:
-                next_cell = MAP_ARRAY[cell_x][cell_y - 1]
-                if next_cell == step_num - 1:
-                    way_array.append((cell_x, cell_y - 1))
-                    step_num -= 1
-                    return (cell_x, cell_y - 1), step_num
-                elif next_cell == -9:
-                    way_array.append((cell_x, cell_y - 1))
-                    return (cell_x, cell_y - 1), step_num
-
-            if cell_x + 1 < map_size:
-                next_cell = MAP_ARRAY[cell_x + 1][cell_y]
-                if next_cell == step_num - 1:
-                    way_array.append((cell_x + 1, cell_y))
-                    step_num -= 1
-                    return (cell_x + 1, cell_y), step_num
-                elif next_cell == -9:
-                    way_array.append((cell_x + 1, cell_y))
-                    return (cell_x + 1, cell_y), step_num
-
-            if cell_y + 1 < map_size:
-                next_cell = MAP_ARRAY[cell_x][cell_y + 1]
-                if next_cell == step_num - 1:
-                    way_array.append((cell_x, cell_y + 1))
-                    step_num -= 1
-                    return (cell_x, cell_y + 1), step_num
-                elif next_cell == -9:
-                    way_array.append((cell_x, cell_y + 1))
-                    return (cell_x, cell_y + 1), step_num
 
         de_way = [finish_point]
         step_value = step_val
